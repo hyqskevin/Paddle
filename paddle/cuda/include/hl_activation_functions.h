@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ namespace hppl {
  */
 template <class T>
 class Active {
-public:
+ public:
   typedef T (*forward)(T);
   typedef T (*backward)(T, T);
 };
@@ -40,18 +40,18 @@ public:
 namespace gpu {
 static __device__ Active<real>::forward forward[] = HPPL_ACTIVE_FUNCTION;
 static __device__ Active<real>::backward backward[] = HPPL_ACTIVE_FUNCTION;
-}
+}  // namespace gpu
 #else
 namespace cpu {
 static Active<real>::forward forward[] = HPPL_ACTIVE_FUNCTION;
 static Active<real>::backward backward[] = HPPL_ACTIVE_FUNCTION;
-}
+}  // namespace cpu
 
 #ifdef __AVX__
 namespace avx {
 static Active<__m256>::forward forward[] = HPPL_ACTIVE_FUNCTION;
 static Active<__m256>::backward backward[] = HPPL_ACTIVE_FUNCTION;
-}
+}  // namespace avx
 #endif
 #endif
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ real f(Matrix& mat1,
 }
 
 class Functor {
-public:
+ public:
   real operator()(Matrix& mat1,
                   const Matrix& mat2,
                   IVector& vec1,
@@ -49,7 +49,7 @@ public:
     return a_;
   }
 
-private:
+ private:
   real a_;
 };
 
@@ -94,7 +94,7 @@ void testWrapper(F&& f) {
   }
 }
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
 TEST(ExecViaCpu, test1) {
   testWrapper(f);
   testWrapper(&f);

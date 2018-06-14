@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ namespace paddle {
  * called to set one and only one real layer
  */
 class AgentLayer : public Layer {
-protected:
+ protected:
   LayerPtr realLayer_;
   int numSamples_;
 
-public:
+ public:
   explicit AgentLayer(const LayerConfig& config) : Layer(config) {}
 
   ~AgentLayer() {}
@@ -50,31 +50,19 @@ public:
 };
 
 /**
- * like AgentLayer, but use first *numSamples* sequences
- */
-class SequenceAgentLayer : public AgentLayer {
-public:
-  explicit SequenceAgentLayer(const LayerConfig& config) : AgentLayer(config) {}
-  ~SequenceAgentLayer() {}
-
-  void forward(PassType passType) override;
-  void backward(const UpdateCallback& callback = nullptr) override {}
-};
-
-/**
  * Like AgentLayer, but it can gather many real layers. Each real
  * layer give a few rows of a sequence, after gather all real layers,
  * GatherAgentLayer collect a complete sequence.
  */
 class GatherAgentLayer : public Layer {
-protected:
+ protected:
   std::vector<LayerPtr> realLayers_;
   std::vector<IVectorPtr> idsVec_;
   // we don't clear idsVec_ vector to aviod IVector alloc/free
   IVectorPtr allIds_;
   std::vector<int> idIndex_;
 
-public:
+ public:
   explicit GatherAgentLayer(const LayerConfig& config) : Layer(config) {}
 
   virtual ~GatherAgentLayer() {}
@@ -83,7 +71,10 @@ public:
             const ParameterMap& parameterMap) override;
 
   // call before addRealLayer
-  void copyIdAndSequenceInfo(const Argument& input,
+  void clearRealLayers() { realLayers_.clear(); }
+
+  void copyIdAndSequenceInfo(ICpuGpuVectorPtr sequenceStartPositions,
+                             ICpuGpuVectorPtr subSequenceStartPositions,
                              const IVectorPtr& allIds,
                              const std::vector<int>& idIndex);
 
@@ -92,24 +83,8 @@ public:
 
   void forward(PassType passType) override;
   void backward(const UpdateCallback& callback) override;
-};
-
-/**
- * Like GatherAgentLayer, but select a few sequence in real layer.
- * *ids* in addRealLayer() are the ids of selected sequence.
- * It's used to reorder sequence output.
- */
-class SequenceGatherAgentLayer : public GatherAgentLayer {
-public:
-  explicit SequenceGatherAgentLayer(const LayerConfig& config)
-      : GatherAgentLayer(config) {}
-  virtual ~SequenceGatherAgentLayer() {}
-
-  void forward(PassType passType);
-  void backward(const UpdateCallback& callback) {
-    // same as GatherAgentLayer
-    GatherAgentLayer::backward(callback);
-  }
+  void forwardValue(PassType passType);
+  void forwardIds(PassType passType);
 };
 
 /**
@@ -120,7 +95,7 @@ public:
  * if it is, the agent will select a few ids in real layer.
  */
 class ScatterAgentLayer : public Layer {
-protected:
+ protected:
   LayerPtr realLayer_;
   IVectorPtr ids_;
   IVectorPtr cpuIds_;
@@ -129,8 +104,16 @@ protected:
   int idSize_;
   int seqStartPosIndex_;
   int numSequences_;  // number of sequences in this scatterAgentLayer
+  bool handleBackward_;
 
-public:
+  // use to store expanded cpuStartPositions or subSequenceStartPositions
+  // of real layer.
+  ICpuGpuVectorPtr inputStartPos_;
+
+  // true for setRealLayer, false for setRealLayerAndOutput
+  bool selectionMode_;
+
+ public:
   explicit ScatterAgentLayer(const LayerConfig& config) : Layer(config) {}
 
   virtual ~ScatterAgentLayer() {}
@@ -147,20 +130,17 @@ public:
    *                        false(default) in ScatterAgentLayer, and
    *                        true in SequenceScatterAgentLayer.
    */
-  void setRealLayer(LayerPtr layer,
-                    const std::vector<int>& ids,
-                    bool copyId = false) {
+  void setRealLayer(LayerPtr layer, const std::vector<int>& ids) {
     realLayer_ = layer;
     IVector::resizeOrCreate(ids_, ids.size(), useGpu_);
     ids_->copyFrom(ids.data(), ids.size());
-    if (copyId) {
-      if (useGpu_) {
-        IVector::resizeOrCreate(cpuIds_, ids.size(), false);
-        cpuIds_->copyFrom(ids.data(), ids.size());
-      } else {
-        cpuIds_ = ids_;
-      }
+    if (useGpu_) {
+      IVector::resizeOrCreate(cpuIds_, ids.size(), false);
+      cpuIds_->copyFrom(ids.data(), ids.size());
+    } else {
+      cpuIds_ = ids_;
     }
+    selectionMode_ = true;
   }
 
   // set real layer and output, [idIndex, idIndex + idSize) of *ids*
@@ -169,12 +149,15 @@ public:
                              const Argument& outArg,
                              const IVectorPtr& ids,
                              int idIndex,
-                             int idSize) {
+                             int idSize,
+                             bool handleBackward) {
     realLayer_ = layer;
     realOutArg_ = outArg;
     ids_ = ids;
     idIndex_ = idIndex;
     idSize_ = idSize;
+    handleBackward_ = handleBackward;
+    selectionMode_ = false;
   }
 
   void setSequenceStartPositions(const ICpuGpuVectorPtr& sequenceStartPositions,
@@ -187,28 +170,8 @@ public:
 
   void forward(PassType passType) override;
   void backward(const UpdateCallback& callback) override;
-};
 
-/**
- * Like ScatterAgentLayer, but select a few sequence in real layer.
- * *ids* in setRealLayer() or setRealLayerAndOutput() are the ids of
- * selected sequence. It's used to reorder sequence input.
- */
-class SequenceScatterAgentLayer : public ScatterAgentLayer {
-protected:
-  // use to store expanded cpuStartPositions or subSequenceStartPositions
-  // of real layer.
-  ICpuGpuVectorPtr inputStartPos_;
-
-public:
-  explicit SequenceScatterAgentLayer(const LayerConfig& config)
-      : ScatterAgentLayer(config) {}
-  virtual ~SequenceScatterAgentLayer() {}
-
-  void forward(PassType passType);
-  void backward(const UpdateCallback& callback) {
-    ScatterAgentLayer::backward(callback);
-  }
+  void forwardWithSelection(PassType passType);
 };
 
 }  // namespace paddle

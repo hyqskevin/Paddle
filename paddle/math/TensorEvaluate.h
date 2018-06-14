@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -103,7 +103,10 @@ inline void TensorGpuApply(LeftType& lhs, const RightType& rhs) {
 }
 #else
 template <class T, typename LeftType, typename RightType>
-inline void TensorGpuApply(LeftType& lhs, RightType& rhs) {}
+inline void TensorGpuApply(LeftType& lhs, RightType& rhs) {
+  LOG(FATAL) << "Since it is gcc compiled, "
+                "this calculation does not support GPU implementation.";
+}
 #endif
 
 }  // namespace paddle

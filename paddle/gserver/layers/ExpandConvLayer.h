@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@ limitations under the License. */
 #pragma once
 
 #include <vector>
-#include "ExpandConvBaseLayer.h"
+#include "ConvBaseLayer.h"
 #include "paddle/math/Matrix.h"
 
 namespace paddle {
@@ -28,10 +28,9 @@ namespace paddle {
  * The config file api is img_conv_layer.
  */
 
-class ExpandConvLayer : public ExpandConvBaseLayer {
-public:
-  explicit ExpandConvLayer(const LayerConfig& config)
-      : ExpandConvBaseLayer(config) {}
+class ExpandConvLayer : public ConvBaseLayer {
+ public:
+  explicit ExpandConvLayer(const LayerConfig& config) : ConvBaseLayer(config) {}
 
   ~ExpandConvLayer() {}
 
@@ -40,6 +39,13 @@ public:
 
   void forward(PassType passType) override;
   void backward(const UpdateCallback& callback) override;
+
+  size_t getOutputSize();
+
+ protected:
+  std::vector<TensorShape> inputShape_;
+  std::vector<TensorShape> filterShape_;
+  std::vector<TensorShape> outputShape_;
 };
 
 }  // namespace paddle

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ limitations under the License. */
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "paddle/gserver/gradientmachines/GradientMachine.h"
 #include "paddle/utils/Common.h"
 #include "paddle/utils/GlobalConstants.h"
 
@@ -58,9 +59,10 @@ class RangeError {};
 
 /// Not support Error, such as access GPU memory directly, etc.
 class UnsupportError : public std::runtime_error {
-public:
-  UnsupportError() : std::runtime_error(" "){};
-  UnsupportError(const std::string& message) : std::runtime_error(message){};
+ public:
+  UnsupportError() : std::runtime_error(" ") {}
+  explicit UnsupportError(const std::string& message)
+      : std::runtime_error(message) {}
 };
 
 /// This type will map to python's list of float.
@@ -104,7 +106,7 @@ class Matrix {
   DISABLE_COPY(Matrix);
   static Matrix* createByPaddleMatrixPtr(void* sharedPtr);
 
-public:
+ public:
   virtual ~Matrix();
 
   /**
@@ -230,7 +232,7 @@ public:
 
   bool isGpu() const;
 
-private:
+ private:
   void* getSharedPtr() const;
 
   MatrixPrivate* m;
@@ -247,7 +249,7 @@ class Vector {
 
   void* getSharedPtr();
 
-public:
+ public:
   ~Vector();
 
   /// Create Vector filled with zero.
@@ -309,10 +311,10 @@ public:
   /// __len__ in python
   size_t getSize() const;
 
-private:
+ private:
   VectorPrivate* m;
 
-private:
+ private:
   friend class Parameter;
   friend class ParameterOptimizer;
   friend struct ParameterTraverseCallbackPrivate;
@@ -324,7 +326,7 @@ class IVector {
   DISABLE_COPY(IVector);
   static IVector* createByPaddleVectorPtr(void* ptr);
 
-public:
+ public:
   /// Create IVector filled with zero
   static IVector* createZero(size_t sz, bool useGpu = isUsingGpu());
 
@@ -388,7 +390,7 @@ public:
   /// This method will map to python __len__();
   size_t getSize() const;
 
-private:
+ private:
   void* getSharedPtr() const;
 
   friend class Arguments;
@@ -399,11 +401,11 @@ struct ArgumentsPrivate;
 
 /// The Arguments is actual a std::vector<paddle::Argument> in paddle.
 class Arguments {
-private:
+ private:
   Arguments();  // Internal Create.
   DISABLE_COPY(Arguments);
 
-public:
+ public:
   /**
    * Create a arguments with size.
    * Note that it can be zero.
@@ -453,14 +455,33 @@ public:
                                         IVector* vec) throw(RangeError);
   void setSlotSequenceDim(size_t idx, IVector* vec) throw(RangeError);
 
+  /**
+   * Set the frame height of the idx-th Argument.
+   *
+   * @param ids The index of which Argument.
+   * @param h The height value.
+   */
+  void setSlotFrameHeight(size_t idx, size_t h) throw(RangeError);
+
+  /**
+   * Set the frame height of the idx-th Argument.
+   *
+   * @param ids The index of which Argument.
+   * @param h The height value.
+   */
+  void setSlotFrameWidth(size_t idx, size_t w) throw(RangeError);
+
+  size_t getSlotFrameHeight(size_t idx = 0) const throw(RangeError);
+  size_t getSlotFrameWidth(size_t idx = 0) const throw(RangeError);
+
   float sum() const;
 
-private:
+ private:
   static Arguments* createByPaddleArgumentVector(void* ptr);
   static Arguments* createByPaddleArgument(const void* ptr);
   void* getInternalArgumentsPtr() const;
 
-private:
+ private:
   ArgumentsPrivate* m;
   friend class Trainer;
   friend class GradientMachine;
@@ -468,8 +489,10 @@ private:
 };
 
 enum GradientMatchineCreateMode {
-  CREATE_MODE_NORMAL = 0,
-  CREATE_MODE_TESTING = 4
+  CREATE_MODE_NORMAL = paddle::GradientMachine::kNormal,
+  CREATE_MODE_SGD_SPARSE_CPU_TRAINING =
+      paddle::GradientMachine::kSgdSparseCpuTraining,
+  CREATE_MODE_TESTING = paddle::GradientMachine::kTesting
 };
 
 struct ParameterConfigPrivate;
@@ -485,7 +508,7 @@ class ParameterConfig {
   static ParameterConfig* createParameterConfigFromParameterPtr(void* ptr);
   void* getRawPtr();
 
-public:
+ public:
   ~ParameterConfig();
 
   /**
@@ -493,10 +516,10 @@ public:
    */
   std::string toProtoString() const;
 
-private:
+ private:
   ParameterConfigPrivate* m;
 
-private:
+ private:
   friend class Parameter;
   friend class ParameterOptimizer;
   friend struct ParameterTraverseCallbackPrivate;
@@ -507,7 +530,7 @@ class OptimizationConfig {
   DISABLE_COPY(OptimizationConfig);
   OptimizationConfig();
 
-public:
+ public:
   static OptimizationConfig* createFromProtoString(const std::string& str);
   ~OptimizationConfig();
 
@@ -516,7 +539,7 @@ public:
    */
   std::string toProtoString();
 
-private:
+ private:
   OptimizationConfigPrivate* m;
 
   friend class TrainerConfig;
@@ -527,11 +550,11 @@ private:
 
 struct ParameterPrivate;
 class Parameter {
-private:
+ private:
   Parameter();
   DISABLE_COPY(Parameter);
 
-public:
+ public:
   virtual ~Parameter();
 
   /**
@@ -558,11 +581,11 @@ public:
 
   size_t getSize() const;
 
-private:
+ private:
   static Parameter* createFromRawPtr(void* ptr);
   static Parameter* createFromSharedPtr(void* ptr);
 
-private:
+ private:
   ParameterPrivate* m;
   friend class UpdateCallbackWrapper;
   friend class GradientMachine;
@@ -576,14 +599,14 @@ struct ModelConfigPrivate;
  * It is used by GradientMachine.
  */
 class ModelConfig {
-private:
+ private:
   ModelConfig();
   DISABLE_COPY(ModelConfig);
 
-public:
+ public:
   virtual ~ModelConfig();
 
-private:
+ private:
   ModelConfigPrivate* m;
   friend class TrainerConfig;
   friend struct TrainerConfigPrivate;
@@ -597,11 +620,11 @@ struct TrainerConfigPrivate;
  * It is used by GradientMachine.
  */
 class TrainerConfig {
-private:
+ private:
   TrainerConfig();
   DISABLE_COPY(TrainerConfig);
 
-public:
+ public:
   virtual ~TrainerConfig();
 
   static TrainerConfig* createFromTrainerConfigFile(
@@ -612,7 +635,7 @@ public:
 
   OptimizationConfig* getOptimizationConfig() const;
 
-private:
+ private:
   TrainerConfigPrivate* m;
   friend class Trainer;
 };
@@ -632,7 +655,7 @@ private:
  * @endcode
  */
 class UpdateCallback {
-public:
+ public:
   virtual ~UpdateCallback();
   virtual void apply(Parameter* p);
 };
@@ -642,14 +665,14 @@ class ParameterTraverseCallback {
   DISABLE_COPY(ParameterTraverseCallback);
   ParameterTraverseCallback();
 
-public:
+ public:
   ~ParameterTraverseCallback();
 
   void apply(const std::vector<Vector*>& vecs,
              const ParameterConfig& config,
              size_t sparseId);
 
-private:
+ private:
   ParameterTraverseCallbackPrivate* m;
   friend class ParameterOptimizer;
 };
@@ -664,7 +687,7 @@ class ParameterOptimizer {
   DISABLE_COPY(ParameterOptimizer);
   ParameterOptimizer();
 
-public:
+ public:
   static ParameterOptimizer* create(OptimizationConfig* config);
 
   ~ParameterOptimizer();
@@ -688,7 +711,7 @@ public:
   ParameterTraverseCallback* needSpecialTraversal(
       const ParameterConfig& config) const;
 
-private:
+ private:
   ParameterOptimizerPrivate* m;
 };
 
@@ -696,11 +719,11 @@ class SequenceGenerator;
 class Evaluator;
 struct GradientMachinePrivate;
 class GradientMachine {
-private:
+ private:
   GradientMachine();
   DISABLE_COPY(GradientMachine);
 
-public:
+ public:
   virtual ~GradientMachine();
 
   /**
@@ -795,7 +818,7 @@ public:
 
   void eval(Evaluator* evaluator);
 
-private:
+ private:
   GradientMachinePrivate* m;
 
   static GradientMachine* createFromPaddleModelPtr(
@@ -811,13 +834,18 @@ private:
 
 struct ParameterUpdaterPrivate;
 class ParameterUpdater {
-private:
+ private:
   ParameterUpdater();
 
-public:
+ public:
   static ParameterUpdater* createLocalUpdater(OptimizationConfig* config);
   static ParameterUpdater* createRemoteUpdater(OptimizationConfig* config,
-                                               int passCount);
+                                               int passCount,
+                                               bool useSparseUpdater);
+  static ParameterUpdater* createNewRemoteUpdater(
+      OptimizationConfig* config,
+      const std::string pserverSpec,
+      const bool useEtcd) throw(UnsupportError);
   ~ParameterUpdater();
 
   /**
@@ -856,6 +884,13 @@ public:
   void update(Parameter* param);
 
   /**
+   * @breif only get required sparse rows by default.
+   * @param fullSize: get full matrix parameter if *fullSize* set
+   * @param apply: get PARAMETER_APPLY on pserver if *apply* set
+   */
+  void getParametersRemote(bool fullSize = false, bool apply = false);
+
+  /**
    * @brief restore the average parameter.
    * @note It is only used in AverageOptimizer. Restore will get the current
    * PARAMETER_VALUE back.
@@ -877,17 +912,17 @@ public:
    */
   void catchUpWith();
 
-private:
+ private:
   ParameterUpdaterPrivate* m;
 };
 
 struct EvaluatorPrivate;
 class Evaluator {
-private:
+ private:
   Evaluator();
   DISABLE_COPY(Evaluator);
 
-public:
+ public:
   ~Evaluator();
 
   /**
@@ -911,7 +946,7 @@ public:
 
   double getValue(const std::string name) const;
 
-private:
+ private:
   EvaluatorPrivate* m;
 
   friend class GradientMachine;
@@ -919,13 +954,13 @@ private:
 
 struct TrainerPrivate;
 class Trainer {
-private:
+ private:
   TrainerPrivate* m;
   Trainer();
   Trainer(TrainerConfig* optConfig, GradientMachine* gm);
   DISABLE_COPY(Trainer);
 
-public:
+ public:
   virtual ~Trainer();
 
   /// Create A Trainer By TrainerConfig. using paddle command line.
@@ -968,7 +1003,7 @@ public:
 
 /// the N-Best results generated from one input sequence.
 class ISequenceResults {
-public:
+ public:
   virtual ~ISequenceResults();
 
   /// Number of result.
@@ -992,7 +1027,7 @@ class SequenceGenerator {
   DISABLE_COPY(SequenceGenerator);
   SequenceGenerator();
 
-public:
+ public:
   virtual ~SequenceGenerator();
 
   /**
@@ -1010,10 +1045,10 @@ public:
   void setMaxLength(size_t maxlength);
   void setBeamSize(size_t beamSize);
 
-private:
+ private:
   static SequenceGenerator* createByGradientMachineSharedPtr(void* ptr);
   friend class GradientMachine;
 
-private:
+ private:
   SequenceGeneratorPrivate* m;
 };

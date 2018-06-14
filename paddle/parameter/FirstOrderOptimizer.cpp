@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -145,9 +145,9 @@ AdagradParameterOptimizer::needSpecialTraversal(
   if (numUpdates_ % kMaxNumAccumulates == 0) {
     // Move the sum to a different buffer to avoid loss of precision
     // due to too many sums.
-    return [this](const VectorPtr vecs[],
-                  const ParameterConfig& config,
-                  size_t sparseId) {
+    return [](const VectorPtr vecs[],
+              const ParameterConfig& config,
+              size_t sparseId) {
       vecs[PARAMETER_GRADIENT_SQURESUM]->add(
           *vecs[PARAMETER_GRADIENT_SQURESUM1]);
       vecs[PARAMETER_GRADIENT_SQURESUM1]->zeroMem();
@@ -161,6 +161,7 @@ void AdaDeltaParameterOptimizer::update(const VectorPtr vecs[],
                                         const ParameterConfig& config,
                                         size_t sparseId) const {
   CHECK(sparseId == -1LU) << "Sparse update is not supported";
+
   BaseMatrix& value = *vecs[PARAMETER_VALUE];
   BaseMatrix& grad = *vecs[PARAMETER_GRADIENT];
   BaseMatrix& mom = *vecs[PARAMETER_MOMENTUM];
@@ -265,6 +266,7 @@ void AdamParameterOptimizer::update(const VectorPtr vecs[],
                                     const ParameterConfig& config,
                                     size_t sparseId) const {
   CHECK(sparseId == -1UL) << "Sparse update is not supported";
+
   real beta1_power = std::pow(beta1_, step_);
   real beta2_power = std::pow(beta2_, step_);
   real learningRate = config.learning_rate() * learningRate_;
@@ -303,18 +305,25 @@ void AdamaxParameterOptimizer::update(const VectorPtr vecs[],
 void OptimizerWithGradientClipping::update(const VectorPtr vecs[],
                                            const ParameterConfig& config,
                                            size_t sparseId) const {
+  real globalThreshold = optConfig_.gradient_clipping_threshold();
+  real localThreshold = config.gradient_clipping_threshold();
+
+  // Use local gradient clipping threshold if it's enabled,
+  // otherwise using the global one.
+  real threshold = localThreshold > 0.0f ? localThreshold : globalThreshold;
+  std::string field = localThreshold > 0.0f ? "local" : "global";
+
   real maxAbsGrad = vecs[PARAMETER_GRADIENT]->getAbsMax();
-  if (maxAbsGrad > config.gradient_clipping_threshold()) {
+  if (maxAbsGrad > threshold) {
     if (FLAGS_log_clipping) {
       real avgAbsGrad = vecs[PARAMETER_GRADIENT]->getAbsSum() /
                         vecs[PARAMETER_GRADIENT]->getSize();
-      LOG(INFO) << "parameter=" << config.name() << " need clipping,"
-                << " max grad=" << maxAbsGrad << " avg grad=" << avgAbsGrad;
+      LOG(INFO) << "parameter=" << config.name() << " need clipping by "
+                << field << " threshold=" << threshold
+                << ", max grad=" << maxAbsGrad << ", avg grad=" << avgAbsGrad;
     }
-    vecs[PARAMETER_GRADIENT]->clip(-config.gradient_clipping_threshold(),
-                                   config.gradient_clipping_threshold());
+    vecs[PARAMETER_GRADIENT]->clip(-threshold, threshold);
   }
-
   optimizer_->update(vecs, config, sparseId);
 }
 

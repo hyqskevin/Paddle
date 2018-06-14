@@ -33,6 +33,13 @@ limitations under the License. */
 #include "Flags.h"
 #include "hl_gpu.h"
 
+#if defined(__ANDROID__) && (__ANDROID_API__ < 21)
+inline int rand_r(unsigned int* seedp) {
+  (void)seedp;
+  return rand();
+}
+#endif
+
 /**
  * Loop over the elements in a container
  * TODO(yuyang18): It's this foreach useful? Why not use C++ 11 foreach,
@@ -172,7 +179,7 @@ void loadFileList(const std::string& fileListFileName,
  */
 void registerInitFunction(std::function<void()> func, int priority = 0);
 class InitFunction {
-public:
+ public:
   explicit InitFunction(std::function<void()> func, int priority = 0) {
     registerInitFunction(func, priority);
   }
@@ -184,7 +191,7 @@ public:
  * When the SetDevice object is destructed, it will restore device environment.
  */
 class SetDevice {
-public:
+ public:
   explicit SetDevice(int deviceId) {
     isSet_ = deviceId >= 0;
     devId_ = 0;
@@ -199,7 +206,7 @@ public:
     }
   }
 
-protected:
+ protected:
   bool isSet_;
   int devId_;
 };
@@ -211,7 +218,7 @@ protected:
  * *d2* is peer device to enable direct access to by the d1 device.
  */
 inline void enablePeerAccess(int d1, int d2) {
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   if (hl_device_can_access_peer(d1, d2)) {
     SetDevice dev(d1);
     hl_device_enable_peer_access(d2);
@@ -233,7 +240,7 @@ inline void enablePeerAccess(int d1, int d2) {
  * }
  */
 class AsyncGpuBlock {
-public:
+ public:
   AsyncGpuBlock() : syncFlag_(hl_get_sync_flag()) { hl_set_sync_flag(false); }
   ~AsyncGpuBlock() {
     if (syncFlag_) {
@@ -242,7 +249,7 @@ public:
     }
   }
 
-private:
+ private:
   bool syncFlag_;
 };
 
@@ -371,7 +378,7 @@ std::string join(const std::string& part1,
  * A Checker for each invoke of method in same thread.
  */
 class SameThreadChecker {
-public:
+ public:
   SameThreadChecker() {}
 
   /**
@@ -393,7 +400,7 @@ public:
         << invokeThreadId_ << " current invoked in " << curThreadId;
   }
 
-private:
+ private:
   std::once_flag onceFlag_;
   std::thread::id invokeThreadId_;
 };
@@ -414,7 +421,7 @@ private:
  */
 template <typename KType, typename VType, typename Hash>
 class WeakKVCache {
-public:
+ public:
   WeakKVCache() {}
 
   std::shared_ptr<VType> get(const KType& key,
@@ -435,7 +442,7 @@ public:
     return retVal;
   }
 
-private:
+ private:
   std::mutex lock_;
   std::unordered_map<KType, std::weak_ptr<VType>, Hash> storage_;
 };
@@ -446,7 +453,7 @@ private:
  */
 template <typename CallbackType, typename... Args>
 class ScopedCallbacks {
-public:
+ public:
   ScopedCallbacks(CallbackType enter, CallbackType exit, Args&... args)
       : exit_(std::bind(exit, args...)) {
     enter(args...);
@@ -457,7 +464,7 @@ public:
 
   ~ScopedCallbacks() { exit_(); }
 
-private:
+ private:
   std::function<void()> exit_;
 };
 
@@ -468,7 +475,7 @@ private:
  */
 template <typename T, size_t Alignment>
 class AlignedAllocator {
-public:
+ public:
   /// std campatible typedefs.
   typedef T* pointer;
   typedef const T* const_pointer;
@@ -545,12 +552,12 @@ public:
     return this->allocate(n);
   }
 
-private:
+ private:
   AlignedAllocator& operator=(const AlignedAllocator&);  // disable
 };
 
 class Deprecated {
-public:
+ public:
   explicit Deprecated(const std::string& msg = "") {
     if (msg.empty()) {
       LOG(WARNING) << "This class is deprecated, please do not use this class.";

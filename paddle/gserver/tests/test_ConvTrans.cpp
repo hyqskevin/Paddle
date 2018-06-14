@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@ limitations under the License. */
 #include <vector>
 #include "ModelConfig.pb.h"
 #include "paddle/gserver/layers/DataLayer.h"
-#include "paddle/gserver/layers/ExpandConvTransLayer.h"
 #include "paddle/math/MathUtils.h"
-#include "paddle/trainer/Trainer.h"
 #include "paddle/utils/GlobalConstants.h"
 
 #include "LayerGradUtil.h"

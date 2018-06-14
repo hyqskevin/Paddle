@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ TEST(BufferTest, SequenceIdArg) {
                          sizeOfValuType(VALUE_TYPE_INT32));
   SequenceIdArg buffer(memory.getBuf(), shape);
   EXPECT_EQ(buffer.data(), memory.getBuf());
-  EXPECT_EQ(buffer.numSeqs(), 9);
+  EXPECT_EQ(buffer.numSeqs(), 9U);
 }
 
 }  // namespace paddle

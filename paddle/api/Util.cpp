@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ bool isUsingGpu() { return FLAGS_use_gpu; }
 void setUseGpu(bool useGpu) { FLAGS_use_gpu = useGpu; }
 
 bool isGpuVersion() {
-#ifdef PADDLE_ONLY_CPU
+#ifndef PADDLE_WITH_CUDA
   return false;
 #else
   return true;

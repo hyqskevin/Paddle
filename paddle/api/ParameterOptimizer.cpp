@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,11 +53,7 @@ struct ParameterTraverseCallbackPrivate {
 
 ParameterOptimizer::ParameterOptimizer() : m(new ParameterOptimizerPrivate()) {}
 
-ParameterOptimizer::~ParameterOptimizer() {
-  if (m) {
-    delete m;
-  }
-}
+ParameterOptimizer::~ParameterOptimizer() { delete m; }
 
 ParameterOptimizer* ParameterOptimizer::create(OptimizationConfig* config) {
   CHECK(config != nullptr);
@@ -104,11 +100,7 @@ std::vector<int> ParameterOptimizer::getParameterTypes() const {
 ParameterTraverseCallback::ParameterTraverseCallback()
     : m(new ParameterTraverseCallbackPrivate()) {}
 
-ParameterTraverseCallback::~ParameterTraverseCallback() {
-  if (m) {
-    delete m;
-  }
-}
+ParameterTraverseCallback::~ParameterTraverseCallback() { delete m; }
 
 void ParameterTraverseCallback::apply(const std::vector<Vector*>& vecs,
                                       const ParameterConfig& conf,

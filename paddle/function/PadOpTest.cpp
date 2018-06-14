@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ TEST(Pad, real) {
           VLOG(3) << " numSamples=" << numSamples << " channels=" << channels
                   << " imgSizeH=" << imgSizeH << " imgSizeW=" << imgSizeW;
           for (bool test_grad : {false, true}) {
-            FunctionCompare compare(
+            CpuGpuFuncCompare compare(
                 test_grad ? "PadGrad" : "Pad",
                 FuncConfig()
                     .set<std::vector<uint32_t>>("channel", {2, 3})

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ namespace paddle {
  * If not set memory handler, then the data could be auto growth.
  */
 class RowBuffer {
-public:
+ public:
   /**
    * @brief RowBuffer create a auto-growth row buffer. The row length is width.
    * @param width the length of each row, a.k.a matrix width.
@@ -60,7 +60,7 @@ public:
    */
   inline real* get(int row) const {
     if (preallocatedBuf_) {
-      CHECK_LE((row + 1) * width_ * sizeof(real), preallocatedBuf_->getSize());
+      CHECK_LE((row)*width_ * sizeof(real), preallocatedBuf_->getSize());
       return reinterpret_cast<real*>(preallocatedBuf_->getBuf()) + row * width_;
     } else {
       CHECK_LE((row + 1) * width_, rowStore_.size());
@@ -99,7 +99,11 @@ public:
   /**
    * @brief clear local buffer. It only affect auto-growth buffer.
    */
-  inline void clear() { rowStore_.clear(); }
+  inline void clear() {
+    // swap an empty vector to it to free the memory.
+    std::vector<real, AlignedAllocator<real, 32>> empty;
+    rowStore_.swap(empty);
+  }
 
   /**
    * @brief get current number of rows.
@@ -125,7 +129,7 @@ public:
    */
   inline size_t getWidth() const { return width_; }
 
-private:
+ private:
   //! TODO(yuyang18): Add resize method to CpuMemHandlePtr, then we can get rid
   //! of std::vector here.
   CpuMemHandlePtr preallocatedBuf_;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ namespace paddle {
  */
 
 class ConvBaseLayer : public Layer {
-protected:
+ protected:
   typedef std::vector<int> IntV;
 
   /// True if it's deconv layer, false if it's convolution layer
@@ -40,6 +40,10 @@ protected:
   IntV stride_;
   /// The y dimension of the stride.
   IntV strideY_;
+  /// The x dimension of the dilation.
+  IntV dilation_;
+  /// The y dimension of the dilation.
+  IntV dilationY_;
   /// The x dimension of a filter kernel.
   IntV filterSize_;
   /// The y dimension of a filter kernel.
@@ -58,6 +62,13 @@ protected:
   IntV outputH_;
   /// The spatial dimensions of output feature map width.
   IntV outputW_;
+
+  IntV outputD_;
+  IntV imgSizeD_;
+  IntV filterSizeZ_;
+  IntV strideZ_;
+  IntV paddingZ_;
+
   /// Group size, refer to grouped convolution in
   /// Alex Krizhevsky's paper: when group=2, the first half of the
   /// filters are only connected to the first half of the input channels,
@@ -77,7 +88,7 @@ protected:
   /// of output size.
   bool caffeMode_;
 
-public:
+ public:
   explicit ConvBaseLayer(const LayerConfig& config) : Layer(config) {}
 
   bool init(const LayerMap& layerMap,

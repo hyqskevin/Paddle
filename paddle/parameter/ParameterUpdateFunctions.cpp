@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ void sgdUpdateCpu(real learningRate,
                   const real* grad,
                   real* momentumVec) {
   decayRate *= learningRate;
+#ifdef PADDLE_WITH_MKLML
+#pragma omp parallel for
+#endif
   for (size_t i = 0; i < size; ++i) {
     momentumVec[i] = momentum * momentumVec[i] - learningRate * grad[i] -
                      decayRate * value[i];

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ bool CudnnPoolLayer::typeCheck(const std::string &poolType,
     if (mode) {
       *mode = HL_POOLING_AVERAGE;
     }
-  } else if (poolType == "cudnn-avg-excl-pad-pool") {
+  } else if (poolType == "cudnn-avg-incl-pad-pool") {
     if (mode) {
-      *mode = HL_POOLING_AVERAGE_EXCLUDE_PADDING;
+      *mode = HL_POOLING_AVERAGE_INCLUDE_PADDING;
     }
   } else {
     return false;

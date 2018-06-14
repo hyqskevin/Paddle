@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ typedef std::shared_ptr<BufferBatch> BufferBatchPtr;
  * @brief Data for batch training a neural network
  */
 class DataBatch {
-public:
+ public:
   DataBatch() : size_(0) { data_.clear(); }
   /**
    * @brief Get batch size
@@ -181,7 +181,7 @@ public:
     }
   }
 
-protected:
+ protected:
   /**
    * @brief batch size
    */
@@ -194,7 +194,7 @@ protected:
 };
 
 class BufferBatch {
-public:
+ public:
   BufferBatch() {
     hlStream_ = HPPL_STREAM_DEFAULT;
     hlEvent_ = NULL;
@@ -205,10 +205,8 @@ public:
       hl_destroy_event(hlEvent_);
       hlEvent_ = NULL;
     }
-    if (batchData_) {
-      delete batchData_;
-      batchData_ = NULL;
-    }
+    delete batchData_;
+    batchData_ = NULL;
   }
 
   void setDataBatch(DataBatch* batchData) { batchData_ = batchData; }
@@ -237,7 +235,7 @@ public:
   void swap(BufferBatch* bufBatch);
   void clone(DataBatch* srcBatch, bool useGpu);
 
-protected:
+ protected:
   DataBatch* batchData_;
   hl_stream_t hlStream_;
   hl_event_t hlEvent_;
@@ -249,7 +247,7 @@ typedef std::shared_ptr<DataProvider> DataProviderPtr;
 typedef Queue<BufferBatch*> BufferBatchQueue;
 
 class DoubleBuffer {
-public:
+ public:
   DoubleBuffer(DataProvider* dataPool, bool useGpu, int64_t batchSize = 0);
   virtual ~DoubleBuffer();
   void removeOneBatch(DataBatch* dataBatch);
@@ -269,7 +267,7 @@ public:
 
   void setPending(bool pending) { pending_ = pending; }
 
-protected:
+ protected:
   virtual void asyncLoadBatch();
   void insertOneBatch(DataBatch* batch);
 
@@ -292,7 +290,7 @@ protected:
  * one is for input, one is for label.
  */
 class DataProvider {
-public:
+ public:
   static ClassRegistrar<DataProvider, DataConfig, ModelConfig, bool> registrar_;
   static DataProvider* create(const DataConfig& config,
                               const ModelConfig& modelConfig,
@@ -361,7 +359,7 @@ public:
    */
   virtual int64_t getNextBatchInternal(int64_t size, DataBatch* batch) = 0;
 
-protected:
+ protected:
   DataConfig config_;
   bool skipShuffle_;
   float usageRatio_;
@@ -384,7 +382,7 @@ protected:
  * necessary configurations such as stream_names
  */
 class DummyDataProvider : public DataProvider {
-public:
+ public:
   DummyDataProvider(const DataConfig& config, bool useGpu)
       : DataProvider(config, useGpu) {}
   virtual void shuffle() {}
@@ -401,7 +399,7 @@ public:
  * Data provider for one input and one integer label.
  */
 class SimpleDataProviderBase : public DataProvider {
-protected:
+ protected:
   /// sample feature dimension
   int64_t sampleDim_;
   /// the number of samples
@@ -427,7 +425,7 @@ protected:
 
   RWLock lock_;
 
-public:
+ public:
   SimpleDataProviderBase(const DataConfig& config, bool useGpu, bool withInfo);
   ~SimpleDataProviderBase() {}
 
@@ -442,7 +440,7 @@ public:
   /// return the number of samples in the buffer
   int64_t fillBuffer();
 
-protected:
+ protected:
   /**
    * @brief Fill at most size samples into data and label.
    *
@@ -460,12 +458,12 @@ protected:
 };
 
 class SimpleDataProvider : public SimpleDataProviderBase {
-public:
+ public:
   SimpleDataProvider(const DataConfig& config, bool useGpu);
   ~SimpleDataProvider();
   virtual void reset();
 
-protected:
+ protected:
   void loadData(const std::string& fileName);
   void loadDataFile(const std::string& fileName);
   virtual int64_t fillBufferImp(real* data,
@@ -473,7 +471,7 @@ protected:
                                 int* info,
                                 int64_t size);
 
-protected:
+ protected:
   size_t currentSampleIndex_;
   std::vector<int> labels_;
   std::vector<real> data_;

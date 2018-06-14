@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ struct MessageHeader {
 };
 
 class Thread {
-public:
+ public:
   void start();
   virtual void run() = 0;
   virtual ~Thread() {}
 
-protected:
+ protected:
   std::unique_ptr<std::thread> thread_;
 };
 
@@ -44,13 +44,13 @@ void Thread::start() {
 }
 
 class SocketChannel {
-public:
+ public:
   explicit SocketChannel(int socket) : socket_(socket) {}
   int getSocketFd() const { return socket_; }
   uint64_t readAll(void* buf, size_t size);
   uint64_t writeAll(const void* buf, size_t size);
 
-protected:
+ protected:
   int socket_;
 };
 
@@ -79,7 +79,7 @@ uint64_t SocketChannel::writeAll(const void* buf, size_t size) {
 }
 
 class SocketWorker : public Thread {
-public:
+ public:
   explicit SocketWorker(int socket) : channel_(socket) {}
   virtual void run();
 
@@ -88,19 +88,19 @@ public:
 
   // write n bytes
 
-protected:
+ protected:
   SocketChannel channel_;
   std::string buffer_;
 };
 
 class SocketServer : public Thread {
-public:
+ public:
   explicit SocketServer(int port)
       : port_(port), socket_(0), maxPendingConnections_(100) {}
 
   virtual void run();
 
-protected:
+ protected:
   int port_;
   int socket_;
   int maxPendingConnections_;
@@ -113,7 +113,7 @@ void SocketServer::run() {
 
   /* First call to socket() function */
   socket_ = socket(AF_INET, SOCK_STREAM, 0);
-  PCHECK(socket_ >= 0) << "ERROR opening socket";
+  CHECK(socket_ >= 0) << "ERROR opening socket";
 
   /* Initialize socket structure */
   bzero((char*)&serv_addr, sizeof(serv_addr));
@@ -122,7 +122,7 @@ void SocketServer::run() {
   serv_addr.sin_port = htons(port_);
 
   /* Now bind the host address using bind() call.*/
-  PCHECK(bind(socket_, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0)
+  CHECK(bind(socket_, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0)
       << "ERROR on binding";
 
   /* Now start listening for the clients, here process will
@@ -134,7 +134,7 @@ void SocketServer::run() {
   while (true) {
     /* Accept actual connection from the client */
     newsockfd = accept(socket_, (struct sockaddr*)&cli_addr, &clilen);
-    PCHECK(newsockfd >= 0) << "ERROR on accept";
+    CHECK(newsockfd >= 0) << "ERROR on accept";
 
     SocketWorker* worker = new SocketWorker(newsockfd);
     worker->start();
@@ -146,26 +146,26 @@ void SocketWorker::run() {
 
   while (true) {
     int64_t n = channel_.readAll(&header, sizeof(header));
-    PCHECK(n == sizeof(header)) << "ERROR reading from socket";
+    CHECK(n == sizeof(header)) << "ERROR reading from socket";
 
     buffer_.resize(header.dataLength);
     n = channel_.readAll(&buffer_[0], header.dataLength);
-    PCHECK(n == header.dataLength) << "ERROR reading from socket";
+    CHECK(n == header.dataLength) << "ERROR reading from socket";
 
     /* Write a response to the client */
     n = channel_.writeAll(&header, sizeof(header));
-    PCHECK(n == sizeof(header)) << "ERROR reading from socket";
+    CHECK(n == sizeof(header)) << "ERROR reading from socket";
     n = channel_.writeAll(buffer_.data(), buffer_.size());
-    PCHECK(n == header.dataLength) << "ERROR writing to socket";
+    CHECK(n == header.dataLength) << "ERROR writing to socket";
   }
 }
 
 class SocketClient {
-public:
+ public:
   SocketClient(const std::string& serverAddr, int serverPort);
   SocketChannel* getChannel() const { return channel_.get(); }
 
-protected:
+ protected:
   std::unique_ptr<SocketChannel> channel_;
 };
 
@@ -177,9 +177,9 @@ SocketClient::SocketClient(const std::string& serverAddr, int serverPort) {
 
   /* Create a socket point */
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  PCHECK(sockfd >= 0) << "ERROR opening socket";
+  CHECK(sockfd >= 0) << "ERROR opening socket";
   server = gethostbyname(serverAddr.c_str());
-  PCHECK(server) << "ERROR, no such host: " << serverAddr;
+  CHECK(server) << "ERROR, no such host: " << serverAddr;
 
   bzero((char*)&serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
@@ -189,7 +189,7 @@ SocketClient::SocketClient(const std::string& serverAddr, int serverPort) {
   serv_addr.sin_port = htons(serverPort);
 
   /* Now connect to the server */
-  PCHECK(connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0)
+  CHECK(connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0)
       << "ERROR connecting";
 
   channel_.reset(new SocketChannel(sockfd));
@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 
   uint64_t dataSize = FLAGS_dim * sizeof(real);
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   GpuVector gpuParam(FLAGS_dim);
   GpuVector gpuGrad(FLAGS_dim);
 #else
@@ -234,18 +234,18 @@ int main(int argc, char** argv) {
     cpuGrad.copyFrom(gpuGrad);
 
     header.dataLength = dataSize;
-    PCHECK(channel->writeAll(&header, sizeof(header)) == sizeof(header))
+    CHECK(channel->writeAll(&header, sizeof(header)) == sizeof(header))
         << "Client write header error";
 
-    PCHECK(channel->writeAll(cpuGrad.getData(), dataSize) == dataSize)
+    CHECK(channel->writeAll(cpuGrad.getData(), dataSize) == dataSize)
         << "Client write data error";
 
     /* Now read server response */
-    PCHECK(channel->readAll(&header, sizeof(header)) == sizeof(header))
+    CHECK(channel->readAll(&header, sizeof(header)) == sizeof(header))
         << "Client read header error";
 
     CHECK_EQ((uint64_t)header.dataLength, dataSize);
-    PCHECK(channel->readAll(cpuParam.getData(), dataSize) == dataSize)
+    CHECK(channel->readAll(cpuParam.getData(), dataSize) == dataSize)
         << "Client read data error";
 
     gpuParam.copyFrom(cpuParam);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ void testPoolAllocator() {
 
 TEST(Allocator, Pool) {
   testPoolAllocator<CpuAllocator>();
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   testPoolAllocator<GpuAllocator>();
 #endif
 }
@@ -92,7 +92,7 @@ TEST(MemoryHandle, Cpu) {
   EXPECT_EQ(ptr1, ptr2);
 }
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
 TEST(MemoryHandle, Gpu) {
   int numGpu = hl_get_device_count();
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -171,11 +171,7 @@ struct VectorPrivate {
 
 Vector::Vector() : m(new VectorPrivate()) {}
 
-Vector::~Vector() {
-  if (m) {
-    delete m;
-  }
-}
+Vector::~Vector() { delete m; }
 
 Vector* Vector::createZero(size_t sz, bool useGpu) {
   auto retVec = new Vector();

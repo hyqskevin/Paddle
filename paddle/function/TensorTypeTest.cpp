@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ namespace paddle {
 
 TEST(TensorType, Matrix) {
   Tensor<real, DEVICE_TYPE_CPU>::Matrix matrix(100, 200);
-  EXPECT_EQ(matrix.getHeight(), 100);
-  EXPECT_EQ(matrix.getWidth(), 200);
-  EXPECT_EQ(matrix.getElementCnt(), 100 * 200);
+  EXPECT_EQ(matrix.getHeight(), 100U);
+  EXPECT_EQ(matrix.getWidth(), 200U);
+  EXPECT_EQ(matrix.getElementCnt(), 100U * 200U);
   EXPECT_EQ(matrix.useGpu(), false);
 
   Tensor<real, DEVICE_TYPE_GPU>::Matrix testGpu(100, 200);
@@ -33,15 +33,15 @@ TEST(TensorType, Vector) {
   Tensor<real, DEVICE_TYPE_GPU>::Vector gpuVector(100);
   EXPECT_EQ(cpuVector.useGpu(), false);
   EXPECT_EQ(gpuVector.useGpu(), true);
-  EXPECT_EQ(cpuVector.getSize(), 100);
-  EXPECT_EQ(gpuVector.getSize(), 100);
+  EXPECT_EQ(cpuVector.getSize(), 100U);
+  EXPECT_EQ(gpuVector.getSize(), 100U);
 
   Tensor<int, DEVICE_TYPE_CPU>::Vector cpuIVector(100);
   Tensor<int, DEVICE_TYPE_GPU>::Vector gpuIVector(100);
   EXPECT_EQ(cpuIVector.useGpu(), false);
   EXPECT_EQ(gpuIVector.useGpu(), true);
-  EXPECT_EQ(cpuIVector.getSize(), 100);
-  EXPECT_EQ(gpuIVector.getSize(), 100);
+  EXPECT_EQ(cpuIVector.getSize(), 100U);
+  EXPECT_EQ(gpuIVector.getSize(), 100U);
 }
 
 TEST(TensorType, EmptyMatrix) {

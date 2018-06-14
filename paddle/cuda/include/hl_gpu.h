@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ limitations under the License. */
 #include "hl_matrix.h"
 #include "hl_sequence.h"
 #include "hl_sparse.h"
+#ifndef PADDLE_MOBILE_INFERENCE
 #include "hl_warpctc_wrap.h"
+#endif
 
 #ifdef HPPL_STUB_FUNC
 #include "stub/hl_aggregate_stub.h"

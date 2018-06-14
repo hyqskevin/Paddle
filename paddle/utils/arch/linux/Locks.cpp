@@ -19,7 +19,7 @@ limitations under the License. */
 
 namespace paddle {
 class SemaphorePrivate {
-public:
+ public:
   sem_t sem;
 };
 
@@ -40,10 +40,12 @@ void Semaphore::wait() { sem_wait(&m->sem); }
 
 void Semaphore::post() { sem_post(&m->sem); }
 
+/// SpinLockPrivate
+
 #ifdef PADDLE_USE_PTHREAD_SPINLOCK
 
 class SpinLockPrivate {
-public:
+ public:
   inline SpinLockPrivate() { pthread_spin_init(&lock_, 0); }
   inline ~SpinLockPrivate() { pthread_spin_destroy(&lock_); }
 
@@ -55,10 +57,13 @@ public:
 };
 
 #else
-
+// clang-format off
+#include <cstddef>
 #include <atomic>
+// clang-format on
+
 class SpinLockPrivate {
-public:
+ public:
   inline void lock() {
     while (lock_.test_and_set(std::memory_order_acquire)) {
     }
@@ -76,10 +81,12 @@ SpinLock::~SpinLock() { delete m; }
 void SpinLock::lock() { m->lock(); }
 void SpinLock::unlock() { m->unlock(); }
 
+/// ThreadBarrierPrivate
+
 #ifdef PADDLE_USE_PTHREAD_BARRIER
 
 class ThreadBarrierPrivate {
-public:
+ public:
   pthread_barrier_t barrier_;
 
   inline explicit ThreadBarrierPrivate(int count) {
@@ -94,7 +101,7 @@ public:
 #else
 
 class ThreadBarrierPrivate {
-public:
+ public:
   pthread_mutex_t mutex_;
   pthread_cond_t cond_;
   int count_;
@@ -132,6 +139,8 @@ public:
 };
 
 #endif
+
+/// ThreadBarrier
 
 ThreadBarrier::ThreadBarrier(int count) : m(new ThreadBarrierPrivate(count)) {}
 ThreadBarrier::~ThreadBarrier() { delete m; }

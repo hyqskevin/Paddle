@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ class CosSimForwardFunc : public FunctionBase {
     CosSimForward<Device>(out_mat, in1_mat, in2_mat, scale_);
   }
 
-private:
+ private:
   real scale_;
 };
 
@@ -227,13 +227,13 @@ class CosSimBackwardFunc : public FunctionBase {
         out_grad, out_val, in1_val, in2_val, in1_grad, in2_grad, scale_);
   }
 
-private:
+ private:
   real scale_;
 };
 
 REGISTER_TYPED_FUNC(CosSimForward, CPU, CosSimForwardFunc);
 REGISTER_TYPED_FUNC(CosSimBackward, CPU, CosSimBackwardFunc);
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
 REGISTER_TYPED_FUNC(CosSimForward, GPU, CosSimForwardFunc);
 REGISTER_TYPED_FUNC(CosSimBackward, GPU, CosSimBackwardFunc);
 #endif

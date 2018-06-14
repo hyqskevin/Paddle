@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ struct MatrixPara {
   SparseFormat format;
 };
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
 void test_sparse_matrix_mul(MatrixPara paraA,
                             MatrixPara paraB,
                             MatrixPara paraC) {
@@ -452,7 +452,7 @@ TEST(Matrix, SparseMatrixCSRFormatTrimFrom) {
   matB->trimFrom(*mat);
   checkSMatrixEqual2(matA, matB);
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   GpuSparseMatrixPtr matC = std::make_shared<GpuSparseMatrix>(
       height, trimedWidth, height, FLOAT_VALUE, SPARSE_CSR, true);
   matC->trimFrom(*mat);
@@ -546,7 +546,7 @@ TEST(Matrix, SparseMatrixCSCFormatTrimFrom) {
   matB->trimFrom(*mat);
   checkSMatrixEqual2(matA, matB);
 
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   GpuSparseMatrixPtr matC = std::make_shared<GpuSparseMatrix>(
       height, trimedWidth, height, FLOAT_VALUE, SPARSE_CSC, true);
   matC->trimFrom(*mat);

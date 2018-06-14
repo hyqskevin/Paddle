@@ -49,9 +49,9 @@ namespace paddle {
  */
 template <class T>
 class ThreadLocal {
-public:
+ public:
   ThreadLocal() {
-    PCHECK(pthread_key_create(&threadSpecificKey_, dataDestructor) == 0);
+    CHECK_EQ(pthread_key_create(&threadSpecificKey_, dataDestructor), 0);
   }
   ~ThreadLocal() { pthread_key_delete(threadSpecificKey_); }
 
@@ -65,7 +65,7 @@ public:
     if (!p && createLocal) {
       p = new T();
       int ret = pthread_setspecific(threadSpecificKey_, p);
-      PCHECK(ret == 0);
+      CHECK_EQ(ret, 0);
     }
     return p;
   }
@@ -79,7 +79,7 @@ public:
     if (T* q = get(false)) {
       dataDestructor(q);
     }
-    PCHECK(pthread_setspecific(threadSpecificKey_, p) == 0);
+    CHECK_EQ(pthread_setspecific(threadSpecificKey_, p), 0);
   }
 
   /**
@@ -92,7 +92,7 @@ public:
    */
   operator T*() { return get(); }
 
-private:
+ private:
   static void dataDestructor(void* p) { delete (T*)p; }
 
   pthread_key_t threadSpecificKey_;
@@ -111,8 +111,8 @@ private:
  */
 template <class T>
 class ThreadLocalD {
-public:
-  ThreadLocalD() { PCHECK(pthread_key_create(&threadSpecificKey_, NULL) == 0); }
+ public:
+  ThreadLocalD() { CHECK_EQ(pthread_key_create(&threadSpecificKey_, NULL), 0); }
   ~ThreadLocalD() {
     pthread_key_delete(threadSpecificKey_);
     for (auto t : threadMap_) {
@@ -127,7 +127,7 @@ public:
     T* p = (T*)pthread_getspecific(threadSpecificKey_);
     if (!p) {
       p = new T();
-      PCHECK(pthread_setspecific(threadSpecificKey_, p) == 0);
+      CHECK_EQ(pthread_setspecific(threadSpecificKey_, p), 0);
       updateMap(p);
     }
     return p;
@@ -141,7 +141,7 @@ public:
     if (T* q = (T*)pthread_getspecific(threadSpecificKey_)) {
       dataDestructor(q);
     }
-    PCHECK(pthread_setspecific(threadSpecificKey_, p) == 0);
+    CHECK_EQ(pthread_setspecific(threadSpecificKey_, p), 0);
     updateMap(p);
   }
 
@@ -150,7 +150,7 @@ public:
    */
   T& operator*() { return *get(); }
 
-private:
+ private:
   static void dataDestructor(void* p) { delete (T*)p; }
 
   void updateMap(T* p) {
@@ -172,7 +172,7 @@ private:
  * @brief Thread-safe C-style random API.
  */
 class ThreadLocalRand {
-public:
+ public:
   /**
    * initSeed just like srand,
    * called by main thread,
@@ -205,7 +205,7 @@ public:
    */
   static int getDefaultSeed() { return defaultSeed_; }
 
-protected:
+ protected:
   static unsigned int defaultSeed_;
   static ThreadLocal<unsigned int> seed_;
 };
@@ -214,7 +214,7 @@ protected:
  * @brief Thread-safe C++ style random engine.
  */
 class ThreadLocalRandomEngine {
-public:
+ public:
   /**
    * get random_engine for each thread.
    *
@@ -222,7 +222,7 @@ public:
    */
   static std::default_random_engine& get();
 
-protected:
+ protected:
   static ThreadLocal<std::default_random_engine> engine_;
 };
 

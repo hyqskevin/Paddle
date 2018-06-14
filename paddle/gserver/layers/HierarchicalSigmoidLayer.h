@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ namespace paddle {
  * The config file api is hsigmod_layer.
  */
 class HierarchicalSigmoidLayer : public Layer {
-public:
+ public:
   explicit HierarchicalSigmoidLayer(const LayerConfig& config)
       : Layer(config) {}
   bool init(const LayerMap& layerMap,
@@ -66,7 +66,7 @@ public:
   void forward(PassType passType) override;
   void backward(const UpdateCallback& callback) override;
 
-protected:
+ protected:
   /**
    * The last of inputs is label layer.
    */
@@ -80,6 +80,15 @@ protected:
   int codeLength_;
   /// temporary result of output_
   Argument preOutput_;
+
+  /// The temporary variables in CPU memory.
+  MatrixPtr cpuWeight_;
+  MatrixPtr cpuWeightGrad_;
+  MatrixPtr cpuInput_;
+  MatrixPtr cpuInputGrad_;
+  MatrixPtr cpuBias_;
+  MatrixPtr cpuOutput_;
+  IVectorPtr cpuLabel_;
 };
 
 }  // namespace paddle

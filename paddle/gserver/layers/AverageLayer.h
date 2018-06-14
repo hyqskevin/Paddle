@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,6 +25,10 @@ namespace paddle {
  * If SequenceLevel = kNonSeq:
  *    Output: output size is the number of input sequences (NOT input instances)
  *    output[i] = average_{for each instance in this sequence}{input[i]}
+ *    If stride_ > 0:
+ *      Output: a shorten sequence. Stride is the step size by which we slide a
+ *              window upon the input sequence, and the average pooling
+ *              operation is then applied to each interval independently.
  * If SequenceLevel = kSeq:
  *    Check input sequence must has sub-sequence
  *    Output: output size is the number of input sub-sequences
@@ -33,7 +37,7 @@ namespace paddle {
  * The config file api is pooling_layer.
  */
 class AverageLayer : public SequencePoolLayer {
-public:
+ public:
   enum AverageStrategy { kAverage = 0, kSum = 1, kAverageSquareRootN = 2 };
   explicit AverageLayer(const LayerConfig& config)
       : SequencePoolLayer(config) {}
@@ -44,7 +48,7 @@ public:
   void forward(PassType passType) override;
   void backward(const UpdateCallback& callback = nullptr) override;
 
-protected:
+ protected:
   int mode_;
 };
 }  // namespace paddle

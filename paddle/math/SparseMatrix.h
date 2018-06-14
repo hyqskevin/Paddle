@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,6 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License. */
 
 #pragma once
+
+#ifndef PADDLE_MOBILE_INFERENCE
+
 #include <cstddef>
 #include "CpuSparseMatrix.h"
 #include "Matrix.h"
@@ -22,7 +25,7 @@ namespace paddle {
 typedef std::shared_ptr<_hl_sparse_matrix_s> hl_sparse_matrix_s_ptr;
 
 class GpuSparseMatrix : public Matrix {
-public:
+ public:
   MemoryHandlePtr sMemoryHandle_;
   int* rows_;
   int* cols_;
@@ -33,7 +36,7 @@ public:
   SparseValueType valueType_;
   SparseFormat format_;
 
-public:
+ public:
   GpuSparseMatrix(size_t height,
                   size_t width,
                   size_t nnz, /* used to allocate space */
@@ -70,7 +73,7 @@ public:
                   bool trans,
                   MemoryHandlePtr sMemoryHandle);
 
-protected:
+ protected:
   struct Element {
     int row;
     int col;
@@ -79,7 +82,7 @@ protected:
         : row(rowIn), col(colIn), val(valIn) {}
   };
 
-public:
+ public:
   ~GpuSparseMatrix() {}
 
   void resize(size_t newHeight,
@@ -208,13 +211,13 @@ public:
    */
   void rowMax(IVector& maxIds, Matrix& maxVal);
 
-protected:
+ protected:
   void sparseResize();
 
   void copyRow(int offsets, size_t colNum, const sparse_non_value_t* row);
   void copyRow(int offsets, size_t colNum, const sparse_float_value_t* row);
 
-public:
+ public:
   void mul(const Matrix& a, const Matrix& b, real scaleAB, real scaleT);
 
   void copyFrom(CpuSparseMatrix& src, hl_stream_t stream);
@@ -225,12 +228,59 @@ public:
   void trimFromCSC(const CpuSparseMatrix& src);
 
   // BaseMatrixT interface
-public:
+ public:
   bool isSparse() const { return true; }
 
-private:
+ private:
   using Matrix::mul;
   using Matrix::copyFrom;
+  using Matrix::rowMax;
+  using Matrix::print;
+  using Matrix::subMatrix;
 };
 
 }  // namespace paddle
+
+#else
+
+#include "CpuSparseMatrix.h"
+
+namespace paddle {
+
+class GpuSparseMatrix : public Matrix {
+ public:
+  GpuSparseMatrix(size_t height,
+                  size_t width,
+                  size_t nnz, /* used to allocate space */
+                  SparseValueType valueType = FLOAT_VALUE,
+                  SparseFormat format_ = SPARSE_CSR,
+                  bool trans = false)
+      : Matrix(NULL, height, width, trans, false) {}
+
+  GpuSparseMatrix(real* value,
+                  int* rows,
+                  int* cols,
+                  size_t height,
+                  size_t width,
+                  size_t nnz,
+                  SparseValueType valueType,
+                  SparseFormat format,
+                  bool trans)
+      : Matrix(NULL, height, width, trans, true) {}
+
+  void resize(size_t newHeight,
+              size_t newWidth,
+              size_t newNnz, /* used to allocate space */
+              SparseValueType valueType,
+              SparseFormat format) {}
+  void resize(size_t newHeight, size_t newWidth) {}
+  MatrixPtr getTranspose() { return nullptr; }
+  void setRow(size_t row,
+              size_t colNum,
+              const unsigned int* cols,
+              const real* values) {}
+};
+
+}  // namespace paddle
+
+#endif

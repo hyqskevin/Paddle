@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace paddle {
  * handled by the base class.
  */
 class CostLayer : public Layer {
-public:
+ public:
   explicit CostLayer(const LayerConfig& config) : Layer(config) {}
 
   bool init(const LayerMap& layerMap,
@@ -51,7 +51,7 @@ public:
                            Argument& label,
                            Matrix& outputGrad) = 0;
 
-protected:
+ protected:
   LayerPtr weightLayer_;
   real coeff_;
 };
@@ -65,7 +65,7 @@ protected:
  * \f]
  */
 class MultiClassCrossEntropy : public CostLayer {
-public:
+ public:
   explicit MultiClassCrossEntropy(const LayerConfig& config)
       : CostLayer(config) {}
 
@@ -95,7 +95,7 @@ public:
  *     In Proceedings of the ACL 2014 Conference.
  */
 class MultiClassCrossEntropyWithSelfNorm : public CostLayer {
-public:
+ public:
   explicit MultiClassCrossEntropyWithSelfNorm(const LayerConfig& config)
       : CostLayer(config) {}
 
@@ -108,7 +108,7 @@ public:
                    Argument& label,
                    Matrix& outputGrad) override;
 
-protected:
+ protected:
   MatrixPtr sftMaxSum_;
   MatrixPtr sumInv_;
 };
@@ -120,7 +120,7 @@ protected:
  * \f]
  */
 class SoftBinaryClassCrossEntropy : public CostLayer {
-public:
+ public:
   explicit SoftBinaryClassCrossEntropy(const LayerConfig& config)
       : CostLayer(config) {}
 
@@ -133,7 +133,7 @@ public:
                    Argument& label,
                    Matrix& outputGrad) override;
 
-protected:
+ protected:
   MatrixPtr targetPerDim_;
 };
 
@@ -145,7 +145,7 @@ protected:
  * \f]
  */
 class SumOfSquaresCostLayer : public CostLayer {
-public:
+ public:
   explicit SumOfSquaresCostLayer(const LayerConfig& config)
       : CostLayer(config) {}
 
@@ -164,12 +164,14 @@ public:
  * tasks.
  * \f[
  * L =
- *   (output - label)^2 * 0.5  / -1 < (output - label) < 1 /
- *   (output - label) - 0.5    / otherwise  /
+ *   0.5 * x^2    if / -1 < |x| < 1 /
+ *   |x| - 0.5    / otherwise /
  * \f]
+ *
+ * x = output - label
  */
 class SmoothL1CostLayer : public CostLayer {
-public:
+ public:
   explicit SmoothL1CostLayer(const LayerConfig& config) : CostLayer(config) {}
 
   bool init(const LayerMap& layerMap,
@@ -195,7 +197,7 @@ public:
  *      Rank useing Gradient Descent.
  */
 class RankingCost : public Layer {
-public:
+ public:
   explicit RankingCost(const LayerConfig& config) : Layer(config) {}
 
   bool init(const LayerMap& layerMap,
@@ -223,7 +225,7 @@ public:
     (void)outputGrad;
   }
 
-private:
+ private:
   double posPairCount_;
   double negPairCount_;
   MatrixPtr margin_;
@@ -248,7 +250,7 @@ private:
  *     with Nonsmooth Cost Functions.
  */
 class LambdaCost : public Layer {
-public:
+ public:
   explicit LambdaCost(const LayerConfig& config) : Layer(config) {}
 
   bool init(const LayerMap& layerMap,
@@ -268,7 +270,7 @@ public:
                 real* gradData,
                 int size);
 
-private:
+ private:
   MatrixPtr marginGrad_;
   int truncationSize_;
   int maxSortSize_;
@@ -285,10 +287,10 @@ private:
  * \f]
  */
 class MultiBinaryLabelCrossEntropy : public CostLayer {
-protected:
+ protected:
   MatrixPtr targetPerDim_;
 
-public:
+ public:
   explicit MultiBinaryLabelCrossEntropy(const LayerConfig& config)
       : CostLayer(config) {}
 
@@ -302,37 +304,70 @@ public:
                    Matrix& outputGrad) override;
 };
 
-/**
- * Huber loss for robust 2-classes classification.
- *
- * For label={0, 1}, let y=2*label-1. Given output f, the loss is:
- * \f[
- * Loss =
- * \left\{\begin{matrix}
- *  4 * y * f     &   \textit{if}  \ \  y* f < -1 \\
- *  (1 - y * f)^2 &  \textit{if}   \ \  -1 < y * f < 1  \\
- *  0             &                    \textit{otherwise}
- * \end{matrix}\right.
- * \f]
+/*
+ * A base layer for HuberRegressionLoss and HuberTwoClassification.
  */
-class HuberTwoClass : public CostLayer {
+class HuberCost : public CostLayer {
+ public:
   std::vector<Argument> tmpCpuInput_;
 
-public:
-  explicit HuberTwoClass(const LayerConfig& config) : CostLayer(config) {}
+  explicit HuberCost(const LayerConfig& config) : CostLayer(config) {}
 
   bool init(const LayerMap& layerMap,
             const ParameterMap& parameterMap) override;
 
   void forwardImp(Matrix& output, Argument& label, Matrix& cost) override;
 
-  void forwardImpIn(Matrix& output, Argument& label, Matrix& cost);
+  void backwardImp(Matrix& outputValue,
+                   Argument& label,
+                   Matrix& outputGrad) override {}
+};
+
+/**
+ * Huber loss for robust regression.
+ *
+ * Given output f(x), label y and delta, the loss is:
+ * Loss = 0.5 * (1 - y * f)^2, if abs(y - f) <= delta \\
+ * Loss = delta * abs(y - f) - 0.5 * delta^2, otherwise
+ */
+class HuberRegressionLoss : public HuberCost {
+ public:
+  explicit HuberRegressionLoss(const LayerConfig& config) : HuberCost(config) {}
+
+  bool init(const LayerMap& layerMap,
+            const ParameterMap& parameterMap) override;
+
+  void forwardImp(Matrix& output, Argument& label, Matrix& cost) override;
 
   void backwardImp(Matrix& outputValue,
                    Argument& label,
                    Matrix& outputGrad) override;
 
-  void backwardImpIn(Matrix& outputValue, Argument& label, Matrix& outputGrad);
+ protected:
+  real delta_;
+};
+
+/**
+ * Huber loss for robust 2-classes classification.
+ *
+ * For label={0, 1}, let y=2*label-1. Given output f(x), the loss is:
+ * Loss = 4 * y * f, if y* f < -1 \\
+ * Loss = (1 - y * f)^2, if -1 < y * f < 1  \\
+ * Loss = 0, otherwise
+ */
+class HuberTwoClassification : public HuberCost {
+ public:
+  explicit HuberTwoClassification(const LayerConfig& config)
+      : HuberCost(config) {}
+
+  bool init(const LayerMap& layerMap,
+            const ParameterMap& parameterMap) override;
+
+  void forwardImp(Matrix& output, Argument& label, Matrix& cost) override;
+
+  void backwardImp(Matrix& outputValue,
+                   Argument& label,
+                   Matrix& outputGrad) override;
 };
 
 typedef std::shared_ptr<CostLayer> CostLayerPtr;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@ limitations under the License. */
 
 #pragma once
 
+#ifndef PADDLE_MOBILE_INFERENCE
+
 #include <gflags/gflags.h>
 #include <string.h>
 #include <algorithm>
@@ -27,7 +29,7 @@ namespace paddle {
  * Sparse Row
  */
 class SparseRowCpuMatrix : public CpuMatrix {
-public:
+ public:
   struct IndexDict {
     // In the following, global id means the row id in the original matrix.
     // Local id means the row id in the local storage which only contains
@@ -51,7 +53,7 @@ public:
 
   virtual ~SparseRowCpuMatrix() {}
 
-public:
+ public:
   /**
    *  Get the row buf
    *
@@ -94,7 +96,7 @@ public:
   /**
    * apply L1 to all sparse rows, should be apply after indices ready.
    */
-  void applyL1Decay(real learningRate, real decayRate);
+  virtual void applyL1(real learningRate, real decayRate);
 
   void clearIndices() { clearRows(); }
   void zeroMemThread(size_t tid, size_t numThreads);
@@ -161,7 +163,7 @@ public:
     return indexDictHandle_->localIndices;
   }
 
-protected:
+ protected:
   template <typename Func>
   void apply(Func f) {
     f(buf_->data(), localIndices_->size() * width_);
@@ -202,7 +204,7 @@ class SyncThreadPool;
 
 /// For prefetching parameters from remote Parameter server
 class SparsePrefetchRowCpuMatrix : public SparseRowCpuMatrix {
-public:
+ public:
   SparsePrefetchRowCpuMatrix(CpuMemHandlePtr dataHandle,
                              size_t height,
                              size_t width,
@@ -227,13 +229,13 @@ public:
    */
   void setupIndices();
 
-protected:
+ protected:
   void addRows(const unsigned int* ids, size_t len);
   SyncThreadPool* pool_;
 };
 
 class SparseAutoGrowRowCpuMatrix : public SparseRowCpuMatrix {
-public:
+ public:
   SparseAutoGrowRowCpuMatrix(size_t height,
                              size_t width,
                              IndexDictPtr indexDictHandle = nullptr,
@@ -256,7 +258,7 @@ public:
 };
 
 class CacheRowCpuMatrix : public SparseAutoGrowRowCpuMatrix {
-public:
+ public:
   CacheRowCpuMatrix(size_t height,
                     size_t width,
                     IndexDictPtr indexDictHandle = nullptr,
@@ -285,7 +287,7 @@ public:
 
   virtual void mul(CpuSparseMatrix* a, CpuMatrix* b, real scaleAB, real scaleT);
 
-public:
+ public:
   CpuVectorPtr sourceDataVec_;
   real* sourceData_;
 };
@@ -297,7 +299,7 @@ public:
  * ids are hashed by worker thread id.
  */
 class SparseRowIdsCpuMatrix : public CpuMatrix {
-public:
+ public:
   SparseRowIdsCpuMatrix(CpuMemHandlePtr dataHandle,
                         size_t height,
                         size_t width,
@@ -308,8 +310,32 @@ public:
 
   std::vector<uint32_t>& getIds(size_t threadId) { return idsArray_[threadId]; }
 
-private:
+ private:
   std::vector<std::vector<uint32_t>> idsArray_;
 };
 
 }  // namespace paddle
+
+#else
+namespace paddle {
+
+class SparseRowCpuMatrix : public CpuMatrix {
+ public:
+  void reserveStore() {}
+  void clearIndices() {}
+};
+
+class SparsePrefetchRowCpuMatrix : public SparseRowCpuMatrix {
+ public:
+  void setupIndices() {}
+  void addRows(MatrixPtr input) {}
+  void addRows(IVectorPtr ids) {}
+};
+
+class SparseAutoGrowRowCpuMatrix : public SparseRowCpuMatrix {};
+class CacheRowCpuMatrix : public SparseAutoGrowRowCpuMatrix {};
+class SparseRowIdsCpuMatrix : public CpuMatrix {};
+
+}  // namespace paddle
+
+#endif

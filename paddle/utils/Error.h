@@ -19,7 +19,21 @@ limitations under the License. */
 #include <stdio.h>
 #include <memory>
 #include <string>
-#include "Compiler.h"
+
+/**
+ * __must_check macro. It make the function's return value must be used,
+ * otherwise it will raise a compile warning. And also Paddle treat all compile
+ * warnings as errors.
+ */
+#ifdef __GNUC__
+#if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 30400
+#define __must_check __attribute__((warn_unused_result))
+#else
+#define __must_check
+#endif
+#else
+#define __must_check
+#endif
 
 namespace paddle {
 
@@ -81,7 +95,7 @@ namespace paddle {
  * log(FATAL) and CHECK in Paddle, 'check' method will be removed.
  */
 class Error {
-public:
+ public:
   /**
    * Construct a no-error value.
    */
@@ -112,9 +126,11 @@ public:
   }
 
   /**
-   * @brief operator bool, return True if there is something error.
+   * @brief check this status by glog.
+   * @note It is a temp method used during cleaning Paddle code. It will be
+   *       removed later.
    */
-  operator bool() const { return !this->isOK(); }
+  void check() const { CHECK(this->isOK()) << msg(); }
 
   /**
    * @brief isOK return True if there is no error.
@@ -122,14 +138,7 @@ public:
    */
   bool isOK() const { return msg_ == nullptr; }
 
-  /**
-   * @brief check this status by glog.
-   * @note It is a temp method used during cleaning Paddle code. It will be
-   *       removed later.
-   */
-  void check() const { CHECK(this->isOK()) << msg(); }
-
-private:
+ private:
   std::shared_ptr<std::string> msg_;
 };
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ limitations under the License. */
 using namespace paddle;  // NOLINT
 
 class CommonTest : public ::testing::Test {
-protected:
+ protected:
   CommonTest() : testStat_("test") {}
   virtual ~CommonTest() {}
   virtual void SetUp() {
@@ -51,7 +51,7 @@ protected:
 
   virtual void TreaDown() { LOG(INFO) << "All Test Finished."; }
 
-protected:
+ protected:
   std::vector<std::pair<real, real>> valueUint_;
   std::vector<size_t> sizeVec_;
   real learningRate_;
@@ -171,54 +171,4 @@ TEST_F(CommonTest, syncThreadPool) {
   for (size_t i = 0; i < nums.size(); ++i) {
     EXPECT_EQ((int)0, nums[i]);
   }
-}
-
-TEST_F(CommonTest, barrierStat) {
-  const int threadNum = 10;
-
-  SyncThreadPool pool(threadNum);
-
-#define TEST_BARRIER_RANDOM(statName, numConnThreads, ...)       \
-  pool.exec([&](int tid, size_t numThreads) {                    \
-    struct timeval time;                                         \
-    gettimeofday(&time, nullptr);                                \
-    uint64_t usec = timeToMicroSecond(time);                     \
-    std::srand(usec);                                            \
-    auto value = std::rand() % 100000;                           \
-    usleep(value);                                               \
-    REGISTER_SLOW_NODES_PROBE(                                   \
-        globalStat, statName, numConnThreads, tid, __VA_ARGS__); \
-  });
-
-  for (auto i = 0; i < 10; i++) {
-    TEST_BARRIER_RANDOM("synThreadBarrier1", threadNum);
-    TEST_BARRIER_RANDOM("synThreadBarrier2", threadNum);
-  }
-
-  globalStat.printAllStatus();
-  globalStat.reset();
-
-  for (auto i = 0; i < 10; i++) {
-    TEST_BARRIER_RANDOM("synThreadBarrier3", threadNum, "tag0");
-    TEST_BARRIER_RANDOM("synThreadBarrier4", threadNum, "tag1");
-  }
-
-  globalStat.printAllStatus();
-  globalStat.reset();
-
-// use it to test accurate barrier gap
-#define TEST_BARRIER(statName, numConnThreads, ...)              \
-  pool.exec([&](int tid, size_t numThreads) {                    \
-    usleep(tid * 10000);                                         \
-    REGISTER_SLOW_NODES_PROBE(                                   \
-        globalStat, statName, numConnThreads, tid, __VA_ARGS__); \
-  });
-
-  for (auto i = 0; i < 10; i++) {
-    TEST_BARRIER("synThreadBarrier3", threadNum, "tag0");
-    TEST_BARRIER("synThreadBarrier4", threadNum, "tag1");
-  }
-
-  globalStat.printAllStatus();
-  globalStat.reset();
 }

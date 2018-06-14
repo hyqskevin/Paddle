@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -102,7 +102,6 @@ real LinearChainCRF::forward(real* x, int* s, int length) {
 }
 
 void LinearChainCRF::backward(real* x, int* s, int length, bool needWGrad) {
-  MatrixPtr matX = Matrix::create(x, length, numClasses_);
   Matrix::resizeOrCreate(matGrad_, length, numClasses_);
   Matrix::resizeOrCreate(beta_, length, numClasses_);
   real* b = b_->getData();

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,16 +53,6 @@ bool ResponseNormLayer::init(const LayerMap& layerMap,
 
   outputY_ = conf.has_output_y() ? conf.output_y() : conf.output_x();
   imgSizeY_ = conf.has_img_size_y() ? conf.img_size_y() : conf.img_size();
-  return true;
-}
-
-bool CrossChannelNormLayer::init(const LayerMap& layerMap,
-                                 const ParameterMap& parameterMap) {
-  Layer::init(layerMap, parameterMap);
-  CHECK(parameters_[0]);
-  const NormConfig& conf = config_.inputs(0).norm_conf();
-  channels_ = conf.channels();
-  scale_.reset(new Weight(channels_, 1, parameters_[0]));
   return true;
 }
 

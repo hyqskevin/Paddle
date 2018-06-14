@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -56,7 +56,14 @@ void TransLayer::backward(const UpdateCallback& callback) {
     return;
   }
   MatrixPtr preGrad = getInputGrad(0);
-  outputGrad->transpose(preGrad, false);
+  if (preGrad) {
+    MatrixPtr transGrad = Matrix::create(preGrad->getHeight(),
+                                         preGrad->getWidth(),
+                                         /* trans= */ false,
+                                         preGrad->useGpu());
+    outputGrad->transpose(transGrad, false);
+    preGrad->add(*transGrad);
+  }
 }
 
 }  // namespace paddle

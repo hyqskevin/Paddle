@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -131,7 +131,8 @@ ParameterOptimizer* OptimizerWithRegularizer::create(
     bool inPserver) {
   ParameterOptimizer* optimizer =
       ParameterOptimizer::create(optConfig, inPserver);
-  if (paraConfig.gradient_clipping_threshold() > 0.0f &&
+  if ((optConfig.gradient_clipping_threshold() > 0.0f ||
+       paraConfig.gradient_clipping_threshold() > 0.0f) &&
       !dynamic_cast<AddOptimizer*>(optimizer)) {
     optimizer = new OptimizerWithGradientClipping(optConfig, optimizer);
   }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -116,9 +116,11 @@ inline bool vec_check(size_t len) {
 }
 
 namespace internal {
+#ifdef __SSE3__
 void addToImpl(float* a, const float* b, size_t len);
 void batchAddToImpl(float* a, const float* b[], int batch, size_t len);
 void colMaxImpl(float* result, const float* data, int dim, int numSamples);
+#endif
 #ifdef __AVX__
 void decayL1AvxImpl(float* dst, float* src, float lambda, size_t len);
 void decayL1AvxImpl(

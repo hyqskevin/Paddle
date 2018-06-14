@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ size_t ConvTransProjection::calOutputSize() {
   if (outputH_ == 0) outputH_ = configOutH_;
   if (outputW_ == 0) outputW_ = configOutW_;
   imageH_ = imageSize(outputH_,
-                      filterH_,
+                      (filterH_ - 1) * dilationH_ + 1,
                       paddingH_,
                       strideH_,
                       /* caffeMode */ true);
 
   imageW_ = imageSize(outputW_,
-                      filterW_,
+                      (filterW_ - 1) * dilationW_ + 1,
                       paddingW_,
                       strideW_,
                       /* caffeMode */ true);

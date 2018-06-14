@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ namespace paddle {
  *    may be called many times, should be no state change between calls.
  */
 class ParameterOptimizer {
-public:
+ public:
   typedef std::function<void(
       const VectorPtr vecs[], const ParameterConfig& config, size_t sparseId)>
       TraverseCallback;
 
-public:
+ public:
   explicit ParameterOptimizer(const OptimizationConfig& optConfig)
       : applyDecay_(true),
         optConfig_(optConfig),
@@ -167,6 +167,7 @@ public:
     }
     parameterTypes_.push_back(type);
   }
+
   real getLearningRate() const { return learningRate_; }
 
   virtual void setNoDecay() { applyDecay_ = false; }
@@ -174,7 +175,7 @@ public:
   static ParameterOptimizer* create(const OptimizationConfig& optConfig,
                                     bool inPserver = false);
 
-protected:
+ protected:
   typedef std::vector<ParameterOptimizer::TraverseCallback> TraverseCallbackVec;
 
   static TraverseCallback composeCallbacks(
@@ -201,6 +202,7 @@ protected:
    * so, if lr change in StartBatch, please assign to learningRate_
    */
   real learningRate_;
+
   std::unique_ptr<LearningRateScheduler> learningRateScheduler_;
   int64_t pass_;  // current training pass (starting from 0)
   bool firstTime_;

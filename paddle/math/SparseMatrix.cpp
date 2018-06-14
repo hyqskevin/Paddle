@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -836,7 +836,7 @@ void GpuSparseMatrix::zeroMem() {
 }
 
 void GpuSparseMatrix::rowMax(IVector& maxIds, Matrix& maxVal) {
-#ifndef PADDLE_ONLY_CPU
+#ifdef PADDLE_WITH_CUDA
   CHECK(maxIds.useGpu() && maxVal.useGpu()) << "Matrix type are not equal";
   size_t numSamples = getHeight();
   size_t beam = maxVal.getWidth();

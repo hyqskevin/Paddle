@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ namespace paddle {
  * The config file api is block_expand_layer.
  */
 class BlockExpandLayer : public Layer {
-protected:
+ protected:
   /**
    * @brief Calculate outputH_ and outputW_ and return block number which
    * actually is time steps.
@@ -50,10 +50,10 @@ protected:
   size_t blockH_, blockW_, strideH_, strideW_, paddingH_, paddingW_;
   size_t imgSizeH_, imgSizeW_, outputH_, outputW_, channels_;
 
-  /// auxiliary variable, which saves the transposed output value.
-  MatrixPtr outVTrans_;
+  TensorShape inputShape_;
+  TensorShape outputShape_;
 
-public:
+ public:
   explicit BlockExpandLayer(const LayerConfig& config) : Layer(config) {}
 
   ~BlockExpandLayer() {}

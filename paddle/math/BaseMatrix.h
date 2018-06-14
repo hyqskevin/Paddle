@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserve.
+/* Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ typedef bool_constant<bool, true> true_type;
   address += row * ld + col;
 
 class MatrixOffset {
-public:
+ public:
   size_t aCol_;
   size_t aRow_;
   size_t bCol_;
@@ -72,14 +72,14 @@ public:
 
 template <class T>
 class BaseMatrixT : public TensorExpression<BaseMatrixT<T>, T> {
-public:
+ public:
   size_t height_, width_;
   size_t stride_;
   T* data_;
   bool trans_;
   bool useGpu_;
 
-public:
+ public:
   virtual ~BaseMatrixT() {}
   BaseMatrixT(size_t height, size_t width, T* data, bool trans, bool useGpu)
       : height_(height),
@@ -489,6 +489,13 @@ public:
   void clip(T p1, T p2);
 
   /**
+   * this = b < low ? 0 : 1
+   *
+   * this = b > high ? 0 : 1
+   */
+  void clipDerivative(BaseMatrixT& b, T p1, T p2);
+
+  /**
    * @code
    * a = a > p ? 1.0f : 0.0f
    * @endcode
@@ -758,7 +765,7 @@ public:
                  T p3);           // decayRate
 
   /// apply L1/L2 to *this*
-  void applyL1(T learningRate, T decayRate);
+  virtual void applyL1(T learningRate, T decayRate);
   void applyL1(BaseMatrixT& lr, T learningRate, T decayRate);
   void applyL2(T learningRate, T decayRate);
   void applyL2(BaseMatrixT& lr, T learningRate, T decayRate);
